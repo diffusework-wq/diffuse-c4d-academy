@@ -1,0 +1,77 @@
+import type {Lesson,Module} from './course';
+const extrude='https://help.maxon.net/c4d/en-us/Content/html/OEXTRUDE.html',boole='https://help.maxon.net/c4d/en-us/Content/html/OBOOLE-ID_OBJECTPROPERTIES.html',cloner='https://help.maxon.net/c4d/2025/en-us/Content/html/OMOGRAPH_CLONER-ID_OBJECTPROPERTIES.html';
+function lesson(n:number,title:string,minutes:number,note:string,steps:string[],tips:string,practice:string,checklist:string[],question:string,options:string[],answer:number,explanation:string,source=extrude,sourceTitle='Maxon · Extrude'):Lesson{return {id:`04-airport-${String(n).padStart(2,'0')}`,title,minutes,summary:steps[0],note,steps,tips,practice,checklist,quiz:{question,options,answer,explanation},video:'',source,sourceTitle,demo:'none'}};
+export const airport:Module={id:'modeling',contentVersion:2,title:'機場行李掃描機',subtitle:'Spline / Extrude / Boolean / Cloner / 場景動畫',lessons:[
+lesson(1,'拆解場景：先搭大形狀',8,'把參考拆成機身、通道、輸送帶、入口軟簾、行李和螢幕。尺寸都是簡化練習起點，不是設備工程圖；先完成灰模，再加圖案和材質。',[
+'先看六步示意圖：螢幕在長側面，紫色軟簾在端面，輸送帶穿過通道。',
+'統一座標：X 是行李前進方向，Y 向上，Z 是機身寬度；地面 Y=0。',
+'用 Cube 搭機身：X240 × Y160 × Z140 cm，中心 Y110；底部 Y30、頂部 Y190。',
+'輸送帶灰模：Cube X520 × Y8 × Z90 cm，中心 Y40，帶面頂 Y44。行李灰模 X55 × Y70 × Z35，中心 Y79。',
+'建立 SCENE Null，下分 MACHINE、CONVEYOR、CURTAINS、BAG、SCREEN、LIGHTS、CAMERA。',
+'三分之四鏡頭同時看長側面與入口；先修比例，再做倒角。'],
+'先問每一塊能用哪個基本形狀做。城市、貼紙和布料細節先放後面。','交一張機身、輸送帶與行李的灰模全景。',['行李沿 X 前進','大形狀比例清楚','鏡頭看得到側面與入口'],'第一步先做？',['所有貼紙','大形狀與比例','最高採樣'],1,'先確定主要形狀，細節才有位置。'),
+lesson(2,'Spline＋Extrude：圓角機身',12,'用端面輪廓沿 X 擠出機身長度。保留 Rectangle 和 Extrude，尺寸與圓角仍能修改。這次方向不同於舊的 XY＋Z 範例。',[
+'端面先畫在 ZY 平面，再沿 X 擠出。',
+'Shift + C 建 Rectangle，Plane 選 ZY，調成 Z 寬140、Y高160 cm；從視圖確認方向。',
+'勾 Rounding，Radius 試8 cm；輪廓中心 Y110、X=-120。',
+'建立 Extrude，Rectangle 放下一層；沿 +X 擠出240 cm，範圍 X=-120 到120。Movement 版本設 X240、Y0、Z0。',
+'開前後 Caps，小倒角先試1–2 cm、3段，檢查邊緣有沒有互相擠壓。',
+'命名 Body_Outer，隱藏第一課方塊灰模，確認新外殼和灰模位置相同。'],
+'沒有厚度先查父子關係和方向；舊教師截圖用 XY＋Z，這次用 ZY＋X，勿照抄400 cm尺寸。','完成240 cm長的圓角外殼，保留生成器。',['ZY 輪廓','沿 X 有厚度','前後封口','生成器保留'],'ZY 端面沿哪軸延伸？',['Y','X','Z'],1,'X 與 ZY 平面垂直。'),
+lesson(3,'Boolean：通道、螢幕槽與孔洞',16,'A 是留下的機身，B 是切割工具。通道要穿透，螢幕槽要留背板。先用內建 Boole 練差集；MeshBoolean 1.8 的精確按鈕以你安裝版本和教師錄影為準。',[
+'先做貫穿通道，再做只切入側壁的螢幕凹槽。',
+'通道切割組：ZY 圓角 Rectangle，Z100 × Y116 cm、Radius4，中心 Y92、X=-130。放進 Extrude 沿 +X 擠出260 cm，超過機身兩端。',
+'Boole：Body_Outer 作第一子層 A，通道切割組作第二子層 B，選 A Subtract B。MeshBoolean 同樣指定主體、切割組與差集。',
+'通道底 Y34、頂 Y150；輸送帶底 Y36、頂 Y44，完整厚度都在通道內。從入口和出口檢查，不能只把入口塗黑。',
+'側面朝 -Z：螢幕切割塊用 XY Rectangle 約170 ×85 cm、中心 X0／Y113，沿 Z 擠出8 cm，放 Z=-72 到-64；機身表面 Z=-70，只切入約6 cm。',
+'第二層 Boole：上一層結果作 A、螢幕切割塊作 B。槽和通道側壁 Z=-50 相隔約14 cm，仍有背板。',
+'補做柱子群挖孔：Cube＋穿透的 Cylinder；Cylinder 放 Cloner 排5根作切割 B。想撒得不規則再加小量 Random，避免孔洞互撞。',
+'版本不接受 Cloner 生成器時，複製備份，用 Current State to Object，再合併切割網格；先少量測試。'],
+'切不到先查 A／B、交集和深度；避免切割面剛好貼住表面。','交入口、出口、側面灰模圖，另交柱子群挖孔面板。',['通道真正貫穿','螢幕槽有背板','Cloner 柱子群挖孔','切割群可修改'],'通道和螢幕槽的差別？',['都要穿透','通道穿透，槽留背板','都不用交集'],1,'切割深度決定留下的結構。',boole,'Maxon · Boole 差集'),
+lesson(4,'Cloner：滾輪與紫色入口軟簾',16,'你標出的入口是多條垂直膠片。先用薄 Cube 做靜態軟簾，從少量複製開始。滾輪橫跨 Z、沿 X 排；膠條沿 Z 排滿入口。',[
+'一根滾輪、一條膠片，各自放進 Cloner。',
+'Cylinder 軸向 Z，Radius4、Height96 cm、中心 Y40。Linear Cloner 沿 X 排42根，間距12 cm，總跨度約492 cm；整組置中。',
+'灰模先看滾輪；成品用黑色薄 Cube 作帶面，頂 Y44。兩側各露出約3 cm滾輪，避免表面共面。',
+'Curtain_Strip Cube：X1 × Y99 × Z8 cm，中心 Y94.5，頂 Y144、底 Y45；倒角0.2 cm，底部和帶面留1 cm。',
+'Linear Cloner 沿 Z 排12條，間距8.2 cm，總寬98.2 cm，對齊 Z=0；X 放入口外側約-121。',
+'上方加細 Cube 作固定簾頭；複製整組到出口 X121。',
+'必做版讓行李停在入口前。進階通過：先備份簾組、轉實體，每片軸心移到頂端，沿 Z 旋轉向 +X 抬起，只 Key 接觸的幾片，離開後放回；出口也處理。'],
+'這裡的膠片是簡化建模，不是布料模擬。行李不能直接穿過靜態膠條；條間留小縫，避免像柵欄。','交滾輪灰模與入口軟簾近照；進階選做推開幾片膠條。',['滾輪沿 X 排','膠條沿 Z 排','固定簾頭清楚','簾底不穿帶面'],'膠條沿哪軸複製？',['Y 上下堆疊','Z 排滿入口','只沿 X 拉長'],1,'入口在 ZY 平面，垂直膠條沿 Z 排列。',cloner,'Maxon · Cloner 排列'),
+lesson(5,'行李與螢幕：基本形狀組裝',14,'行李箱是圓角方塊，加輪子和提把就能辨認。紫色手提袋先做簡化版。螢幕城市圖可用自製平面圖替代，不必重建完整城市。',[
+'先組出橘色行李箱、紫色袋和側面螢幕。',
+'橘箱 Cube X55 × Y70 × Z35 cm，Fillet 約4 cm、3–5段；箱面放幾條薄圓角 Cube 作筋條。',
+'四顆小 Cylinder 作輪子，兩根細 Cube 作拉桿；加輪後調箱體高度，最低輪緣落在帶面 Y44。',
+'提把用三段 Cube 或 U形 Spline＋小截面 Sweep；紫色袋用圓角 Cube＋提把。',
+'每件行李及配件放自己的 BAG Null，Null 軸心放行李中心，子物件 X 以局部0為中心；貼紙先用兩三個自製圖形。',
+'側面螢幕用深色 Rectangle＋Extrude 作框，內放 Plane 或薄 Cube；前表面朝 -Z，和槽底稍微分開。',
+'貼自製城市圖或藍綠圖形，檢查 UV／投射方向；三顆小 Cylinder 做指示燈。'],
+'先修輪廓和接地；螢幕閃爍先查共面。提把和圖案可以簡單，物件分組要清楚。','交兩件行李＋螢幕＋機身的灰模全景。',['輪子接觸帶面','配件跟隨 BAG Null','螢幕有框與內圖','螢幕與入口方向正確'],'配件放在哪裡？',['場景根層','自己的 BAG Null','燈光 Null'],1,'一起分組，動畫時輪子和提把才能跟隨。'),
+lesson(6,'Octane：材質與柔和色光',14,'用藍色烤漆、深色橡膠和金屬把零件分開。橘箱與紫袋有不同粗糙度。先照出形狀，再調色光；沿用第三章 Octane 工作流程。',[
+'先做三類材質，再用大燈板找柔和高光。',
+'Renderer 選 Octane、Path Tracing；低採樣預覽，先檢查曝光。',
+'機身：非金屬 Universal、淡藍底色、適量 Roughness，讓長條高光柔和。帶面與軟簾：高粗糙度非金屬，深灰與紫色。',
+'滾輪與邊框用金屬；橘箱與紫袋用不同 Roughness。欄位名稱依 Octane 版本調整。',
+'螢幕先用普通圖像材質；若加 Emission，低亮度開始，避免白掉。',
+'Key 大燈板放相機側上方；側後 Rim 用微冷光；低強度 Environment 補暗部。',
+'逐盞開關，看入口暗部、橘箱亮部與螢幕細節，修黑塊和過曝。'],
+'彩光要輕，不要蓋過原本藍、橘、紫。黑色仍應有可讀層次；採樣不能修錯誤曝光。','交材質全景與入口近照，分得出烤漆、橡膠、金屬。',['三類材質可辨認','主光有方向','暗部有層次','螢幕不過曝'],'金屬黑掉先查？',['它反射到什麼','把 FPS 加倍','關掉所有光'],0,'金屬需要有內容可反射。','https://docs.otoy.com/cinema4d/MaterialTypeOverview.html','OTOY · Material Overview'),
+lesson(7,'動畫與算圖：行李接近入口',12,'最小動畫讓行李靠近入口並停下；輸送帶先靜止也可合格。完整通過是進階項，要讓軟簾配合抬起。先 Viewport Render 看動作，再 Octane 看品質。',[
+'先做不穿插的3秒，再挑戰通過軟簾。',
+'專案與 Output 都設30 FPS、0–89格；固定相機，同時看得到螢幕、入口與行李。',
+'必做版：橘箱 BAG Null 在0格 X=-230、89格 X=-160，對 P.X 設 Key。箱體半長27.5，終點前緣=-132.5，仍在入口簾 X=-121之前。',
+'配件若超出箱體，按實際最前點調終點，留至少5 cm間隙；插值可線性或緩入緩出。',
+'進階通過：延長路徑，膠條在碰撞前抬起，行李離開後放回；入口、出口都處理。帶面紋理移動與輪子旋轉選做。',
+'Viewport Render 查首中末與完整播放；Octane 再測0、45、89格，檢查反射、暗部與穿插。',
+'輸出1280 ×720、30 FPS、0–89、Frame Step1、PNG，airport_0000.png…airport_0089.png；共90張，合成3秒。',
+'Save Project with Assets 打包專案與貼圖，換電腦再檢查是否缺圖。'],
+'示例終點只適用本課尺寸。不能讓行李直接穿過靜態簾子；不動就查同一 P.X 是否有兩個 Key。','交3秒行李接近入口動畫；進階可做完整通過。',['FPS與範圍一致','行李整組會動','無明顯穿插','90張序列合成3秒'],'0–89格、30 FPS 是？',['89張，3秒','90張，3秒','90張，30秒'],1,'含起始與結束格，共90張。','https://docs.otoy.com/cinema4d/PathTracing.html','OTOY · Path Tracing'),
+lesson(8,'作業：我的機場掃描場景',30,'完成自己的簡化機場行李掃描機。30分鐘是課內檢查與收尾，第一次建完整場景請分次做。示意圖幫助理解造型，尺寸與階層以文字步驟為準。',[
+'把建模、材質、打燈和動畫做成完整場景。',
+'建模必做：Spline＋Extrude 機身，Boolean 貫穿通道與螢幕凹槽，Cloner 滾輪或軟簾；另附柱子群挖孔練習截圖。',
+'場景必做：至少一件有輪子／提把的行李、黑色輸送帶、紫色軟簾、有框的側面螢幕。',
+'材質必做：烤漆、橡膠、金屬三類；柔和 Key 與輔光，暗部仍有層次。',
+'動畫必做：3秒行李接近入口，無浮空或穿插；軟簾互動、帶面滾動為進階選做。',
+'交可編輯 C4D 專案含貼圖、3秒影片、灰模全景、材質全景、入口近照與生成器／切割群階層截圖。',
+'展示標示依教師提供參考進行的學習練習，改用自己的圖案；逐項勾檢查條件，再完整播放。'],
+'時間不足先刪貼紙和複雜城市，保留通道、軟簾與大形狀。不要用黑色材質蓋住沒有挖通的機身。','交可編輯場景含貼圖、3秒動畫、灰模／材質／入口圖與階層截圖。',['Spline＋Extrude 保留','Boolean 通道貫穿','螢幕槽有背板','Cloner 零件與挖孔練習','軟簾與行李清楚','三類材質與柔和光','3秒動畫無明顯穿插','專案含貼圖與截圖'],'作業最重要的是？',['只有一張好看的圖','做法可檢查，場景與動畫完整','所有細節完全複製'],1,'可修改的模型和完整輸出，能證明學會建模。',boole,'Maxon · Boolean 建模概念')
+]};

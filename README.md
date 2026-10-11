@@ -1,17 +1,37 @@
 # Diffuse C4D 學習室
 
-互動式 Cinema 4D 課程原始碼，提供初階與中階課程、可收合目錄、可編輯教學筆記、Google Drive 錄影連結與學習進度。介面以 Diffuse Studio OS 為設計參考。
+以使用者指定的 Diffuse Studio OS v16 為介面參考，採用其品牌圖示、電光藍、白色面板、DM Sans 與 Noto Sans TC。
 
-## 本機開發
+## 內容
 
-此專案使用 Vinext 與 Cloudflare Workers，API 與教師內容管理依賴 Cloudflare D1，使用者登入則依賴目前 Sites 平台提供的身分服務。GitHub Pages 為靜態主機，無法直接執行這些 API 與資料庫功能。
+初階：5章31堂，介面與動畫、MoGraph材質轉換、Octane打燈、機場行李掃描機場景、Null 軸心與 XYZ 相機運鏡。中階：2章14堂，原第四章的音樂播放器產品建模與原第五章的波紋旋鈕／色光動畫。用初階／中階頁籤切換，目錄、章節編號、下一堂和進度都以目前程度為範圍。中階保留 SW-1 作品連結、教師建模截圖、波紋 GIF、Field 示範與灰階貼圖下載。
 
-部署前需要設定自己的 Cloudflare Worker、D1 資料庫與教師存取控制；請勿將平台金鑰或環境變數提交至 GitHub。網站目前仍由原 Sites 主機服務。
+左側整個目錄可收起／展開，每個章節也可獨立收合；收合偏好只保存在當前瀏覽器。前往課程會展開該章，方便定位。
 
-```bash
-npm install
-npm run dev
-npm run build
-```
+網站的「內容管理」可更新標題、分鐘數、筆記、步驟、練習、檢查條件、小測驗、來源與 Drive 影片連結。修改保存至 D1，含版本衝突檢查。進度按 Sites 使用者 ID 保存。影片可保存 Google Drive 連結並使用 Drive 播放器，需要 Drive 檢視權限；第五章另附內建錄影。本網站不會替你上傳影片至 Drive。
 
-課程預設內容位於 `lib/course.ts`，資料庫 schema 和 migrations 位於 `db/` 與 `drizzle/`。
+## 權限
+
+目前以 Sites 平台的 owner-private 存取邊界保護教師編輯。**對學生開放或改為公開前，必須先增加伺服器教師角色／擁有者 allowlist**，再變更平台分享設定。所有寫入端點要求平台認證使用者且檢查同源。瀏覽器不能自行聲稱身分。
+
+## 開發與資料
+
+`npm run dev`；`npm run build`。D1 schema 在 db/schema.ts，migration 在 drizzle/。本機預览須依 starter 流程建立資料表。lib/course.ts 是全新資料庫的預設內容；已有課程資料以資料庫為準，修改此檔不覆蓋教师更新。withCourseUpdates 先兼容機場章版本2，再把 archivedLessons 還原成可編輯中階 player 章；有已保存中階章時保留其修改。沒有備份則使用 lib/player.ts 的原始完整6課。ripples 章移至中階，既有筆記與錄影不覆蓋。原課程 ID 與進度資料不變；模型章內不再重複顯示備份。level 欄位隨教師保存持久化，更新流程可重複執行而不重複新增。波紋章 GIF 隨網站保存，支援收起動畫；減少動態偏好預設不展開。
+
+## 驗證
+
+已檢查編譯、課程載入、教師保存、重開進度、小測驗、Drive URL 格式和版本衝突。互動示範是概念圖，不是實際 C4D／Octane 算圖。沒有提供真實錄影連結，故未驗證特定 Drive 影片的播放權限與內容。
+
+## 初階第五章：Null 軸心與 XYZ 相機運鏡
+
+新增 6 堂、40 分鐘（含作業），初階共 5 章 31 堂；中階兩章保持獨立。lib/null-camera.ts 依教師提供的 2026-10-10 錄影整理：兩層 Null＋相機、局部 XYZ 位移、H/P 分工與 F-Curve。public/null-camera/ 提供壓縮教師錄影（約 8:12、無可辨識旁白）與七張截圖；影片觀察點可跳轉。互動俯視／側視圖是概念示意。教材練習數值不是影片精確參數。
+
+新增章節使用 null-01 至 null-06 穩定 ID，避免與中階波紋課程的舊 05-* ID 衝突。withCourseUpdates 只在缺少章節時加入，不覆蓋已保存教師內容。填入新的 Drive 連結可取代第五章的內建影片；留白時播放內建教師示範。原始 154 MB 影片保留在使用者提供的位置，網站使用約 5.4 MB 的播放副本。
+
+## GitHub 同步
+
+本儲存庫包含網站原始碼、預設課程、圖片，以及 public/null-camera/teacher-demo.mp4 完整壓縮錄影。另一台電腦可 clone 此儲存庫接續修改；開始前先 pull，修改後 commit 並 push。GitHub 更新不會自動發布至 Sites，需要另外部署。
+
+正式網站：https://diffuse-c4d-lab.diffuse-capital.chatgpt.site/
+
+D1 中保存的教師自訂內容與個人進度不包含在 Git 中；它們仍保存在原 Sites 專案。執行與部署需要設定相應的 D1 與 Sites 認證環境。
